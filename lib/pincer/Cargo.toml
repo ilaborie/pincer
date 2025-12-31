@@ -1,6 +1,6 @@
 [package]
 name = "pincer"
-version = "0.1.0"
+version = "0.1.1"
 description = "Declarative HTTP client for Rust, inspired by OpenFeign"
 edition.workspace = true
 rust-version.workspace = true
