@@ -1,0 +1,27 @@
+# Global ownership
+* @ilaborie
+
+# Core library components
+/lib/pincer-core/ @ilaborie
+/lib/pincer-macro/ @ilaborie
+/lib/pincer/ @ilaborie
+
+# Examples and documentation
+/examples/ @ilaborie
+/README.md @ilaborie
+/CLAUDE.md @ilaborie
+/CONTRIBUTING.md @ilaborie
+
+# CI/CD and automation
+/.github/ @ilaborie
+/.mise-tasks/ @ilaborie
+/.mise.toml @ilaborie
+/cliff.toml @ilaborie
+
+# Configuration files
+/Cargo.toml @ilaborie
+/clippy.toml @ilaborie
+
+# Security sensitive files
+/.github/workflows/ @ilaborie
+/.github/dependabot.yml @ilaborie

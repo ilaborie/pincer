@@ -1,0 +1,112 @@
+[package]
+name = "pincer"
+version = "0.1.0"
+description = "Declarative HTTP client for Rust, inspired by OpenFeign"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[features]
+default = []
+
+# Streaming support
+streaming = ["pincer-core/streaming", "dep:futures-util"]
+
+# Core middleware layers (from tower crate)
+middleware-timeout = []        # .with_timeout() helper
+middleware-retry = []          # .with_retry() helper
+middleware-concurrency = []    # .with_concurrency_limit() helper
+
+# Custom middleware layers
+middleware-logging = []        # .with_logging() helper (LoggingLayer)
+middleware-bearer-auth = []    # .with_bearer_auth() helper (BearerAuthLayer)
+middleware-basic-auth = ["dep:base64"] # .with_basic_auth() helper (BasicAuthLayer)
+middleware-follow-redirect = [] # .with_follow_redirects() helper (FollowRedirectLayer)
+middleware-decompression = ["dep:flate2", "dep:brotli", "dep:zstd"] # .with_decompression() helper
+
+# Resilience middleware
+middleware-rate-limit = ["dep:governor"] # .with_rate_limit() helper
+middleware-circuit-breaker = [] # .with_circuit_breaker() helper
+
+# Observability
+middleware-metrics = ["dep:metrics"] # .with_metrics() helper
+
+# Tower-HTTP features (opt-in, requires tower-http dep)
+tower-http-trace = ["dep:tower-http", "tower-http/trace"]
+tower-http-follow-redirect = ["dep:tower-http", "tower-http/follow-redirect"]
+tower-http-compression = ["dep:tower-http", "tower-http/compression-full", "tower-http/decompression-full"]
+tower-http-set-header = ["dep:tower-http", "tower-http/set-header"]
+tower-http-sensitive-headers = ["dep:tower-http", "tower-http/sensitive-headers"]
+
+# Convenience bundles
+middleware-core = [
+    "middleware-timeout",
+    "middleware-retry",
+    "middleware-bearer-auth",
+    "middleware-basic-auth",
+    "middleware-concurrency",
+]
+middleware-resilience = [
+    "middleware-rate-limit",
+    "middleware-circuit-breaker",
+]
+tower-http-recommended = [
+    "tower-http-trace",
+    "tower-http-follow-redirect",
+]
+tower-http-full = [
+    "tower-http-trace",
+    "tower-http-follow-redirect",
+    "tower-http-compression",
+    "tower-http-set-header",
+    "tower-http-sensitive-headers",
+]
+
+# All middleware
+middleware-full = ["middleware-core", "middleware-resilience", "middleware-metrics", "tower-http-full"]
+
+[dependencies]
+pincer-core.workspace = true
+pincer-macro.workspace = true
+
+base64 = { workspace = true, optional = true }
+brotli = { workspace = true, optional = true }
+bytes.workspace = true
+flate2 = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
+governor = { workspace = true, optional = true }
+http.workspace = true
+metrics = { workspace = true, optional = true }
+http-body-util.workspace = true
+hyper-util.workspace = true
+hyper-rustls.workspace = true
+percent-encoding.workspace = true
+rustls.workspace = true
+serde.workspace = true
+serde_html_form.workspace = true
+tokio = { workspace = true, features = ["rt", "time"] }
+tower.workspace = true
+tower-http = { workspace = true, optional = true }
+tower-service.workspace = true
+tracing.workspace = true
+url.workspace = true
+webpki-roots.workspace = true
+zstd = { workspace = true, optional = true }
+
+[dev-dependencies]
+assert2.workspace = true
+flate2.workspace = true
+insta.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true, features = ["full", "test-util", "macros"] }
+wiremock.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.cargo-machete]
+ignored = ["tower-http"]  # Optional dependency, only used with tower-http-* features

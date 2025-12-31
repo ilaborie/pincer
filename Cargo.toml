@@ -1,0 +1,125 @@
+[workspace]
+resolver = "2"
+members = ["lib/pincer-core", "lib/pincer-macro", "lib/pincer", "examples/*"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.92"
+license = "MIT OR Apache-2.0"
+authors = ["Igor Laborie <ilaborie@gmail.com>"]
+repository = "https://github.com/ilaborie/pincer"
+keywords = ["http", "client", "feign", "declarative", "async"]
+categories = ["web-programming::http-client", "asynchronous"]
+
+[workspace.dependencies]
+# Core dependencies
+bytes = "1.9"
+http = "1.2"
+http-body-util = "0.1"
+
+# Async runtime
+tokio = { version = "1.48", default-features = false }
+
+# Futures utilities
+futures-core = "0.3"
+futures-util = "0.3"
+
+# HTTP client
+hyper-util = { version = "0.1", features = [
+    "client",
+    "client-legacy",
+    "http1",
+    "http2",
+    "tokio",
+] }
+hyper-rustls = { version = "0.27", default-features = false, features = [
+    "http1",
+    "http2",
+    "native-tokio",
+    "tls12",
+    "ring",
+    "webpki-tokio",
+] }
+
+# TLS
+rustls = { version = "0.23", default-features = false }
+webpki-roots = "0.26"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_urlencoded = "0.7"
+serde_html_form = "0.2"
+serde_path_to_error = "0.1"
+
+# URL encoding
+percent-encoding = "2.3"
+
+# Base64 encoding
+base64 = "0.22"
+
+# Compression
+flate2 = "1.0"
+brotli = "7.0"
+zstd = "0.13"
+
+# Error handling & derives
+derive_more = { version = "2.0", features = ["debug", "display", "error", "from"] }
+
+# Tower middleware
+tower = { version = "0.5", features = ["timeout", "retry", "limit", "util"] }
+tower-http = { version = "0.6", default-features = false }
+tower-service = "0.3"
+
+# Rate limiting
+governor = "0.8"
+
+# Metrics
+metrics = "0.24"
+
+# Proc-macro
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["full", "parsing", "extra-traits"] }
+
+# Logging
+tracing = "0.1"
+
+# URL handling
+url = "2.5"
+
+# Testing
+assert2 = "0.3"
+insta = { version = "1.42", features = ["yaml"] }
+wiremock = "0.6"
+
+# Internal crates
+pincer-core = { path = "lib/pincer-core" }
+pincer-macro = { path = "lib/pincer-macro" }
+pincer = { path = "lib/pincer" }
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+perf = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
+undocumented_unsafe_blocks = "deny"
+dbg_macro = "warn"
+expect_used = "warn"
+indexing_slicing = "warn"
+print_stderr = "warn"
+print_stdout = "warn"
+unwrap_used = "warn"
+
+# Allow these for better ergonomics
+missing_errors_doc = "allow"
+module_name_repetitions = "allow"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "none"

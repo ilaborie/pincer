@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#MISE description="Run comprehensive pre-push checks: format, lint, and test"
+
+set -eu
+
+echo "🦀 Running Rust checks..."
+
+# Check formatting
+echo "📐 Checking Rust formatting..."
+cargo fmt --all --check
+
+# Check no lint warning
+echo "🔍 Running Rust clippy..."
+cargo clippy --all-targets --all-features -- -D warnings
+
+# Run tests
+echo "🧪 Running Rust unit tests..."
+cargo nextest run --no-fail-fast --all-features
+
+# Run doc tests
+echo "📚 Running Rust doctests..."
+cargo test --doc --all-features
+
+# Run ignored doc tests (require async runtime or network)
+echo "📚 Running ignored Rust doctests..."
+cargo test --doc --all-features -- --ignored
+
+echo ""
+echo "✅ All checks passed!"
+echo "Ready for commit! 🚀"

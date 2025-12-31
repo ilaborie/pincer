@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#MISE description="Run Rust tests using nextest and doctests"
+
+set -eu
+
+echo "🧪 Running Rust tests..."
+
+# Run unit tests with nextest (faster parallel execution)
+echo "🦀 Running Rust unit tests with nextest..."
+cargo nextest run --no-fail-fast --all-features
+
+# Run doctests
+echo "📚 Running Rust doctests..."
+cargo test --doc --all-features
+
+# Run ignored doctests (require async runtime or network)
+echo "📚 Running ignored Rust doctests..."
+cargo test --doc --all-features -- --ignored
+
+echo "✅ All Rust tests passed!"
