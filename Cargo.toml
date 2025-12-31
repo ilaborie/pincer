@@ -94,9 +94,9 @@ insta = { version = "1.42", features = ["yaml"] }
 wiremock = "0.6"
 
 # Internal crates
-pincer-core = { path = "lib/pincer-core" }
-pincer-macro = { path = "lib/pincer-macro" }
-pincer = { path = "lib/pincer" }
+pincer-core = { path = "lib/pincer-core", version = "0.1.0" }
+pincer-macro = { path = "lib/pincer-macro", version = "0.1.0" }
+pincer = { path = "lib/pincer", version = "0.1.0" }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
