@@ -1,0 +1,25 @@
+[workspace]
+
+# Examples - do not publish
+[[package]]
+name = "github-api"
+publish = false
+
+[[package]]
+name = "wikipedia-api"
+publish = false
+
+# Core library - publish
+[[package]]
+name = "pincer-core"
+publish = true
+
+# Macro library - publish
+[[package]]
+name = "pincer-macro"
+publish = true
+
+# Main library - publish
+[[package]]
+name = "pincer"
+publish = true

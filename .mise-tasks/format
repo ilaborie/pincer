@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#MISE description="Format Rust code"
+
+set -eu
+
+echo "📐 Formatting Rust code..."
+cargo fmt --all
+
+echo "✅ Formatting complete!"

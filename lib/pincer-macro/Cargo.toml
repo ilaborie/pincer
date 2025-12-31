@@ -1,0 +1,27 @@
+[package]
+name = "pincer-macro"
+version = "0.1.0"
+description = "Procedural macros for pincer declarative HTTP client"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+
+[dev-dependencies]
+assert2.workspace = true
+insta.workspace = true
+pincer-core.workspace = true
+
+[lints]
+workspace = true

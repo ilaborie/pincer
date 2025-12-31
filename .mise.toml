@@ -1,0 +1,14 @@
+[env]
+RUST_LOG = "info"
+
+[settings]
+experimental = true
+cargo.binstall = true
+
+[tools]
+"cargo:cargo-audit" = "latest"
+"cargo:cargo-deny" = "latest"
+"cargo:cargo-llvm-cov" = "latest"
+"cargo:cargo-nextest" = "latest"
+"cargo:git-cliff" = "latest"
+"cargo:release-plz" = "latest"
