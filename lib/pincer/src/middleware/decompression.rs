@@ -116,21 +116,14 @@ where
         self.inner.poll_ready(cx)
     }
 
-    fn call(&mut self, request: Request<Bytes>) -> Self::Future {
+    fn call(&mut self, mut request: Request<Bytes>) -> Self::Future {
         // Add Accept-Encoding header if not present
-        let request = if request.headers().contains_key("accept-encoding") {
-            request
-        } else {
-            let (method, url, mut headers, body) = request.into_parts();
-            headers.insert(
+        if !request.headers().contains_key("accept-encoding") {
+            request.headers_mut().insert(
                 "accept-encoding".to_string(),
                 "gzip, deflate, br, zstd".to_string(),
             );
-            Request::builder(method, url)
-                .headers(headers)
-                .body(body.unwrap_or_default())
-                .build()
-        };
+        }
 
         let mut inner = self.inner.clone();
 

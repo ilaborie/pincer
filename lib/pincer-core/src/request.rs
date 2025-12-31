@@ -17,16 +17,18 @@
 use std::collections::HashMap;
 
 use bytes::Bytes;
+use http::Extensions;
 
 use crate::Method;
 
-/// An HTTP request with method, URL, headers, and optional body.
+/// An HTTP request with method, URL, headers, optional body, and extensions.
 #[derive(Debug, Clone)]
 pub struct Request<B = Bytes> {
     method: Method,
     url: url::Url,
     headers: HashMap<String, String>,
     body: Option<B>,
+    extensions: Extensions,
 }
 
 impl<B> Request<B> {
@@ -72,10 +74,59 @@ impl<B> Request<B> {
         self.body.as_ref()
     }
 
-    /// Consume into (method, url, headers, body).
+    /// Request extensions.
+    ///
+    /// Extensions allow middleware to attach arbitrary typed data to requests.
     #[must_use]
-    pub fn into_parts(self) -> (Method, url::Url, HashMap<String, String>, Option<B>) {
-        (self.method, self.url, self.headers, self.body)
+    pub fn extensions(&self) -> &Extensions {
+        &self.extensions
+    }
+
+    /// Mutable access to extensions.
+    #[must_use]
+    pub fn extensions_mut(&mut self) -> &mut Extensions {
+        &mut self.extensions
+    }
+
+    /// Consume into (method, url, headers, body, extensions).
+    #[must_use]
+    pub fn into_parts(
+        self,
+    ) -> (
+        Method,
+        url::Url,
+        HashMap<String, String>,
+        Option<B>,
+        Extensions,
+    ) {
+        (
+            self.method,
+            self.url,
+            self.headers,
+            self.body,
+            self.extensions,
+        )
+    }
+
+    /// Construct a request from its parts.
+    ///
+    /// This is the inverse of [`into_parts`](Self::into_parts) and is useful
+    /// for middleware that needs to modify a request and reconstruct it.
+    #[must_use]
+    pub fn from_parts(
+        method: Method,
+        url: url::Url,
+        headers: HashMap<String, String>,
+        body: Option<B>,
+        extensions: Extensions,
+    ) -> Self {
+        Self {
+            method,
+            url,
+            headers,
+            body,
+            extensions,
+        }
     }
 }
 
@@ -86,6 +137,7 @@ pub struct RequestBuilder<B = Bytes> {
     url: url::Url,
     headers: HashMap<String, String>,
     body: Option<B>,
+    extensions: Extensions,
 }
 
 impl<B> RequestBuilder<B> {
@@ -97,6 +149,7 @@ impl<B> RequestBuilder<B> {
             url,
             headers: HashMap::new(),
             body: None,
+            extensions: Extensions::new(),
         }
     }
 
@@ -140,6 +193,24 @@ impl<B> RequestBuilder<B> {
         self
     }
 
+    /// Insert a typed extension value.
+    ///
+    /// Extensions allow middleware to attach arbitrary typed data to requests.
+    #[must_use]
+    pub fn extension<T: Clone + Send + Sync + 'static>(mut self, value: T) -> Self {
+        self.extensions.insert(value);
+        self
+    }
+
+    /// Set extensions from an existing `Extensions` container.
+    ///
+    /// This replaces any previously set extensions.
+    #[must_use]
+    pub fn extensions(mut self, extensions: Extensions) -> Self {
+        self.extensions = extensions;
+        self
+    }
+
     /// Builds the [`Request`].
     #[must_use]
     pub fn build(self) -> Request<B> {
@@ -148,6 +219,7 @@ impl<B> RequestBuilder<B> {
             url: self.url,
             headers: self.headers,
             body: self.body,
+            extensions: self.extensions,
         }
     }
 }
@@ -237,5 +309,74 @@ mod tests {
 
         assert_eq!(request.header("Content-Type"), Some("application/json"));
         assert!(request.body().is_some());
+    }
+
+    #[test]
+    fn request_extensions() {
+        #[derive(Debug, Clone, PartialEq)]
+        struct RequestId(u64);
+
+        let url = url::Url::parse("https://api.example.com").expect("valid URL");
+        let mut request = Request::<Bytes>::builder(Method::Get, url)
+            .extension(RequestId(42))
+            .build();
+
+        // Read extension
+        assert_eq!(
+            request.extensions().get::<RequestId>(),
+            Some(&RequestId(42))
+        );
+
+        // Mutate extension
+        request.extensions_mut().insert(RequestId(100));
+        assert_eq!(
+            request.extensions().get::<RequestId>(),
+            Some(&RequestId(100))
+        );
+    }
+
+    #[test]
+    fn request_from_parts_roundtrip() {
+        #[derive(Debug, Clone, PartialEq)]
+        struct TraceId(String);
+
+        let url = url::Url::parse("https://api.example.com").expect("valid URL");
+        let request = Request::<Bytes>::builder(Method::Post, url)
+            .header("Content-Type", "application/json")
+            .body(Bytes::from(r#"{"name":"test"}"#))
+            .extension(TraceId("abc123".into()))
+            .build();
+
+        let (method, url, headers, body, extensions) = request.into_parts();
+        let reconstructed = Request::from_parts(method, url, headers, body, extensions);
+
+        assert_eq!(reconstructed.method(), Method::Post);
+        assert_eq!(
+            reconstructed.header("Content-Type"),
+            Some("application/json")
+        );
+        assert!(reconstructed.body().is_some());
+        assert_eq!(
+            reconstructed.extensions().get::<TraceId>(),
+            Some(&TraceId("abc123".into()))
+        );
+    }
+
+    #[test]
+    fn request_builder_extensions_replace() {
+        #[derive(Debug, Clone, PartialEq)]
+        struct Marker(u32);
+
+        let url = url::Url::parse("https://api.example.com").expect("valid URL");
+
+        let mut ext = Extensions::new();
+        ext.insert(Marker(99));
+
+        let request = Request::<Bytes>::builder(Method::Get, url)
+            .extension(Marker(1)) // This will be replaced
+            .extensions(ext)
+            .build();
+
+        assert_eq!(request.extensions().get::<Marker>(), Some(&Marker(99)));
     }
 }

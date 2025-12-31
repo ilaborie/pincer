@@ -122,7 +122,7 @@ impl RawHyperClient {
 
     /// Build a hyper request from a pincer request.
     fn build_hyper_request(request: Request<Bytes>) -> Result<http::Request<Full<Bytes>>> {
-        let (method, url, headers, body) = request.into_parts();
+        let (method, url, headers, body, extensions) = request.into_parts();
 
         let mut builder = http::Request::builder()
             .method(http::Method::from(method))
@@ -133,9 +133,14 @@ impl RawHyperClient {
         }
 
         let body = body.map_or_else(Full::default, Full::new);
-        builder
+        let mut http_request = builder
             .body(body)
-            .map_err(|e| Error::invalid_request(e.to_string()))
+            .map_err(|e| Error::invalid_request(e.to_string()))?;
+
+        // Transfer extensions to the http::Request
+        *http_request.extensions_mut() = extensions;
+
+        Ok(http_request)
     }
 
     /// Extract response headers as a `HashMap`.

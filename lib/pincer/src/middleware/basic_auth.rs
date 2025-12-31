@@ -87,21 +87,14 @@ where
         self.inner.poll_ready(cx)
     }
 
-    fn call(&mut self, request: Request<Bytes>) -> Self::Future {
-        // Add the Authorization header
-        let (method, url, mut headers, body) = request.into_parts();
-        headers.insert(
+    fn call(&mut self, mut request: Request<Bytes>) -> Self::Future {
+        request.headers_mut().insert(
             "Authorization".to_string(),
             format!("Basic {}", self.encoded_credentials),
         );
 
-        let new_request = Request::builder(method, url)
-            .headers(headers)
-            .body(body.unwrap_or_default())
-            .build();
-
         let mut inner = self.inner.clone();
-        Box::pin(async move { inner.call(new_request).await })
+        Box::pin(async move { inner.call(request).await })
     }
 }
 
