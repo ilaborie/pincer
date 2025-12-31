@@ -1,6 +1,6 @@
 [package]
 name = "pincer-macro"
-version = "0.1.0"
+version = "0.1.1"
 description = "Procedural macros for pincer declarative HTTP client"
 edition.workspace = true
 rust-version.workspace = true
