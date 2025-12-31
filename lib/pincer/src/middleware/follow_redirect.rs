@@ -175,17 +175,15 @@ where
 
                 // Build the new request
                 // For 303 redirects (and 301/302 to GET), we don't forward the body
-                let (_, _, headers, body) = current_request.into_parts();
+                let (_, _, headers, body, extensions) = current_request.into_parts();
                 let body = if matches!(new_method, Method::Get | Method::Head) {
                     Bytes::new()
                 } else {
                     body.unwrap_or_default()
                 };
 
-                current_request = Request::builder(new_method, new_url)
-                    .headers(headers)
-                    .body(body)
-                    .build();
+                current_request =
+                    Request::from_parts(new_method, new_url, headers, Some(body), extensions);
 
                 redirects += 1;
             }

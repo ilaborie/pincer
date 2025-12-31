@@ -121,15 +121,18 @@ where
         let request = if request.headers().contains_key("accept-encoding") {
             request
         } else {
-            let (method, url, mut headers, body) = request.into_parts();
+            let (method, url, mut headers, body, extensions) = request.into_parts();
             headers.insert(
                 "accept-encoding".to_string(),
                 "gzip, deflate, br, zstd".to_string(),
             );
-            Request::builder(method, url)
-                .headers(headers)
-                .body(body.unwrap_or_default())
-                .build()
+            Request::from_parts(
+                method,
+                url,
+                headers,
+                Some(body.unwrap_or_default()),
+                extensions,
+            )
         };
 
         let mut inner = self.inner.clone();
