@@ -445,6 +445,7 @@ fn generate_trait_impl(
             let sig = strip_pincer_attrs_from_sig(&m.sig);
             let attrs = MethodAttrs::new(m.http_method, m.path.clone());
             let return_type_kind = analyze_return_type(&m.sig.output);
+            let method_name = m.sig.ident.to_string();
             let body = generate_method_body(
                 &attrs,
                 &m.params,
@@ -452,6 +453,7 @@ fn generate_trait_impl(
                 &m.options,
                 trait_headers,
                 return_type_kind,
+                &method_name,
             );
 
             quote! {
@@ -490,6 +492,7 @@ fn generate_wrapper_trait_impl(
             let sig = strip_pincer_attrs_from_sig(&m.sig);
             let attrs = MethodAttrs::new(m.http_method, m.path.clone());
             let return_type_kind = analyze_return_type(&m.sig.output);
+            let method_name = m.sig.ident.to_string();
             let body = generate_method_body(
                 &attrs,
                 &m.params,
@@ -497,6 +500,7 @@ fn generate_wrapper_trait_impl(
                 &m.options,
                 trait_headers,
                 return_type_kind,
+                &method_name,
             );
 
             quote! {
@@ -534,6 +538,7 @@ fn generate_blanket_impl(
             let sig = strip_pincer_attrs_from_sig(&m.sig);
             let attrs = MethodAttrs::new(m.http_method, m.path.clone());
             let return_type_kind = analyze_return_type(&m.sig.output);
+            let method_name = m.sig.ident.to_string();
             let body = generate_blanket_method_body(
                 &attrs,
                 &m.params,
@@ -541,6 +546,7 @@ fn generate_blanket_impl(
                 &m.options,
                 trait_headers,
                 return_type_kind,
+                &method_name,
             );
 
             quote! {
@@ -569,13 +575,16 @@ fn generate_blanket_method_body(
     options: &MethodOptions,
     trait_headers: &[(String, String)],
     return_type_kind: ReturnTypeKind,
+    method_name: &str,
 ) -> TokenStream {
     let method_ident = format_ident!("{}", attrs.method.as_str());
+    let path_template = &attrs.path;
     let url_code = generate_blanket_url_code(&attrs.path, params);
     let query_code = generate_query_code(params);
     let headers_code = generate_headers_code(params, user_agent, trait_headers);
     let pre_body_code = generate_pre_body_code(params);
     let body_code = generate_body_code(params);
+    let param_metadata_code = generate_parameter_metadata_code(method_name, params);
 
     // Generate execute code with optional per-method timeout
     let execute_code = if let Some(timeout) = options.timeout {
@@ -607,6 +616,8 @@ fn generate_blanket_method_body(
         )
         #headers_code
         #body_code
+        .extension(::pincer::PathTemplate::new(#path_template))
+        #param_metadata_code
         .build();
 
         #execute_code
@@ -678,13 +689,16 @@ fn generate_method_body(
     options: &MethodOptions,
     trait_headers: &[(String, String)],
     return_type_kind: ReturnTypeKind,
+    method_name: &str,
 ) -> TokenStream {
     let method_ident = format_ident!("{}", attrs.method.as_str());
+    let path_template = &attrs.path;
     let url_code = generate_url_code(&attrs.path, params);
     let query_code = generate_query_code(params);
     let headers_code = generate_headers_code(params, user_agent, trait_headers);
     let pre_body_code = generate_pre_body_code(params);
     let body_code = generate_body_code(params);
+    let param_metadata_code = generate_parameter_metadata_code(method_name, params);
 
     // Generate execute code with optional per-method timeout
     let execute_code = if let Some(timeout) = options.timeout {
@@ -716,6 +730,8 @@ fn generate_method_body(
         )
         #headers_code
         #body_code
+        .extension(::pincer::PathTemplate::new(#path_template))
+        #param_metadata_code
         .build();
 
         #execute_code
@@ -847,11 +863,14 @@ fn generate_standalone_method(
     let params = parse_method_params(&method_fn.sig.inputs, &attrs.path, attrs.method)?;
     let clean_inputs = strip_pincer_attrs(&sig.inputs);
 
+    let path_template = &attrs.path;
+    let method_name = fn_name.to_string();
     let url_code = generate_url_code(&attrs.path, &params);
     let query_code = generate_query_code(&params);
     let headers_code = generate_headers_code(&params, DEFAULT_USER_AGENT, &[]);
     let pre_body_code = generate_pre_body_code(&params);
     let body_code = generate_body_code(&params);
+    let param_metadata_code = generate_parameter_metadata_code(&method_name, &params);
     let method_ident = format_ident!("{}", attrs.method.as_str());
 
     Ok(quote! {
@@ -866,6 +885,8 @@ fn generate_standalone_method(
             )
             #headers_code
             #body_code
+            .extension(::pincer::PathTemplate::new(#path_template))
+            #param_metadata_code
             .build();
 
             let response = self.client.execute(request).await?;
@@ -987,6 +1008,71 @@ fn strip_pincer_attrs(
             FnArg::Receiver(receiver) => FnArg::Receiver(receiver.clone()),
         })
         .collect()
+}
+
+/// Generate parameter metadata code for injection into request extensions.
+fn generate_parameter_metadata_code(method_name: &str, params: &[MethodParam]) -> TokenStream {
+    let param_metas: Vec<_> = params
+        .iter()
+        .map(|p| {
+            let name = p.name.to_string();
+            let location = param_kind_to_location(&p.kind);
+            let type_name = type_to_string(&p.ty);
+            let required = !is_option_type(&p.ty);
+            quote! {
+                ::pincer::ParamMeta {
+                    name: #name,
+                    location: #location,
+                    type_name: #type_name,
+                    required: #required,
+                }
+            }
+        })
+        .collect();
+
+    if param_metas.is_empty() {
+        quote! {
+            .extension(::pincer::ParameterMetadata {
+                method_name: #method_name,
+                parameters: &[],
+            })
+        }
+    } else {
+        quote! {
+            .extension(::pincer::ParameterMetadata {
+                method_name: #method_name,
+                parameters: &[
+                    #(#param_metas),*
+                ],
+            })
+        }
+    }
+}
+
+/// Convert a `ParamKind` to a `ParamLocation` token stream.
+fn param_kind_to_location(kind: &ParamKind) -> TokenStream {
+    match kind {
+        ParamKind::Path(_) => quote! { ::pincer::ParamLocation::Path },
+        ParamKind::Query(_) => quote! { ::pincer::ParamLocation::Query },
+        ParamKind::Header(_) | ParamKind::Headers => quote! { ::pincer::ParamLocation::Header },
+        ParamKind::Body => quote! { ::pincer::ParamLocation::Body },
+        ParamKind::Form | ParamKind::Multipart(_) => quote! { ::pincer::ParamLocation::Form },
+    }
+}
+
+/// Convert a `syn::Type` to a string representation.
+fn type_to_string(ty: &syn::Type) -> String {
+    quote!(#ty).to_string().replace(' ', "")
+}
+
+/// Check if a type is `Option<T>`.
+fn is_option_type(ty: &syn::Type) -> bool {
+    if let syn::Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+    {
+        return segment.ident == "Option";
+    }
+    false
 }
 
 #[cfg(test)]

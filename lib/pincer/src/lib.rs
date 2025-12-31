@@ -44,8 +44,8 @@ pub use tower;
 // Re-export core types
 pub use pincer_core::{
     ContentType, DefaultErrorDecoder, Error, ErrorDecoder, Form, HttpClient, HttpClientExt, Method,
-    Part, PincerClient, Request, RequestBuilder, Response, Result, ToQueryPairs, from_json,
-    to_form, to_json, to_query_string,
+    ParamLocation, ParamMeta, ParameterMetadata, Part, PathTemplate, PincerClient, Request,
+    RequestBuilder, Response, Result, ToQueryPairs, from_json, to_form, to_json, to_query_string,
 };
 
 // Re-export http types for status codes and headers

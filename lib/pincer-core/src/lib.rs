@@ -10,12 +10,15 @@
 //! - [`StatusCode`] - HTTP status codes (re-exported from `http` crate)
 //! - [`header`] - HTTP header names (re-exported from `http` crate)
 //! - [`ToQueryPairs`] - Trait for converting types to query parameter pairs
+//! - [`PathTemplate`] - Original path template for middleware access
 
 mod body;
 mod client;
 mod error;
 mod method;
 mod multipart;
+mod param_meta;
+mod path_template;
 pub mod prelude;
 mod request;
 mod response;
@@ -25,6 +28,8 @@ pub use client::{HttpClient, HttpClientExt, PincerClient};
 pub use error::{DefaultErrorDecoder, Error, ErrorDecoder, Result};
 pub use method::Method;
 pub use multipart::{Form, Part};
+pub use param_meta::{ParamLocation, ParamMeta, ParameterMetadata};
+pub use path_template::PathTemplate;
 pub use request::{Request, RequestBuilder};
 pub use response::Response;
 
