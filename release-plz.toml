@@ -2,11 +2,11 @@
 
 # Examples - do not publish
 [[package]]
-name = "github-api"
+name = "github-api-example"
 publish = false
 
 [[package]]
-name = "wikipedia-api"
+name = "wikipedia-api-example"
 publish = false
 
 # Core library - publish

@@ -92,10 +92,10 @@ jobs:
 
             // Map required check names to actual GitHub Actions job names
             const checkNameMap = {
-              'check': '\u2705 Check Code Quality',
-              'security': '\uD83D\uDD12 Security Audit',
-              'msrv': '\uD83E\uDD80 Minimum Supported Rust Version',
-              'beta': '\uD83E\uDDEA Beta Rust Channel'
+              'check': 'Check Code Quality',
+              'security': 'Security Audit',
+              'msrv': 'Minimum Supported Rust Version',
+              'beta': 'Beta Rust Channel'
             };
 
             const requiredChecks = Object.keys(checkNameMap);
