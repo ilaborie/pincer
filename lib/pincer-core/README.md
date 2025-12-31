@@ -1,5 +1,9 @@
 # pincer-core
 
+[![Crates.io](https://img.shields.io/crates/v/pincer-core.svg)](https://crates.io/crates/pincer-core)
+[![docs.rs](https://img.shields.io/docsrs/pincer-core)](https://docs.rs/pincer-core)
+[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](https://github.com/ilaborie/pincer/blob/main/LICENSE-MIT)
+
 Core types and traits for the [pincer](https://crates.io/crates/pincer) HTTP client.
 
 ## Overview

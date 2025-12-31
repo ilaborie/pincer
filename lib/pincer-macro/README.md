@@ -1,5 +1,9 @@
 # pincer-macro
 
+[![Crates.io](https://img.shields.io/crates/v/pincer-macro.svg)](https://crates.io/crates/pincer-macro)
+[![docs.rs](https://img.shields.io/docsrs/pincer-macro)](https://docs.rs/pincer-macro)
+[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](https://github.com/ilaborie/pincer/blob/main/LICENSE-MIT)
+
 Proc-macros for the [pincer](https://crates.io/crates/pincer) HTTP client.
 
 ## Overview

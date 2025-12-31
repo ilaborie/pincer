@@ -3,6 +3,10 @@
 Declarative HTTP client for Rust.
 
 [![CI](https://github.com/ilaborie/pincer/actions/workflows/ci.yml/badge.svg)](https://github.com/ilaborie/pincer/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/pincer.svg)](https://crates.io/crates/pincer)
+[![docs.rs](https://img.shields.io/docsrs/pincer)](https://docs.rs/pincer)
+[![Downloads](https://img.shields.io/crates/d/pincer.svg)](https://crates.io/crates/pincer)
+[![MSRV](https://img.shields.io/badge/MSRV-1.92-blue.svg)](https://blog.rust-lang.org/2025/06/26/Rust-1.92.0.html)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 > **Proof of Concept**: This project is experimental and intended for learning and exploration. It is not recommended for production use.
